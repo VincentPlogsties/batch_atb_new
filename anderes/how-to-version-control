@@ -1,0 +1,16 @@
+existing repo on GitHub:
+
+in Rstudio:
+..neues Project..version controlled..
+    <link von Gitub/repo/Code>..
+    Ordnername ist R
+    Verzeichnis zum arbeiten wählen Nextcloud/ATB/Gärtestausw.(GT_JJJJ_##_beschreibung), 
+    
+existing project in R:
+in Github:
+..neues Repo (kein Readme etc)
+in Rstudio:
+Tools..project setup.. Git aktivieren
+Dateien committen, in leere Ordner evtl. datei .gitkeep anlegen
+
+3 Codezeilen auf GitHUB kopieren und in R studio Terminal ausführen
