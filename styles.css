@@ -1,0 +1,68 @@
+/* Custom styles in styles.css */
+/* styles.css */
+.title {
+  font-size: 1.5rem; /* Adjust the font size as needed */
+}
+
+
+/* Apply Flexbox to the panel container */
+#fig-Proben.quarto-layout-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;  /* Space between images */
+}
+
+/* Set the figure (image) to take up 48% of the container for a 2x2 grid */
+#fig-Proben.quarto-layout-panel .quarto-float {
+  flex: 1 1 48%;  /* Each figure takes 48% of the container */
+  box-sizing: border-box;
+  margin: 0;  /* Remove any extra margin */
+}
+
+/* Ensure images fill the container */
+#fig-Proben.quarto-layout-panel .quarto-float img {
+  width: 100%;  /* Make the image take up full width of the figure */
+  height: auto;  /* Maintain aspect ratio */
+}
+
+/* Ensure layout is preserved when printing to PDF */
+@media print {
+  #fig-Proben.quarto-layout-panel {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  #fig-Proben.quarto-layout-panel .quarto-float {
+    flex: 1 1 48%;
+  }
+
+  #fig-Proben.quarto-layout-panel .quarto-float img {
+    page-break-inside: avoid;  /* Prevent images from being split across pages */
+  }
+}
+
+.page-break-before {
+    page-break-before: always;
+}
+
+.page-break-after {
+    page-break-after: always;
+}
+
+.avoid-page-break {
+    page-break-inside: avoid;
+}
+caption, .table-caption {
+  text-align: left;
+}
+table caption {
+    margin-top: 0; /* Adjust space between table and caption */
+    margin-bottom: 0; /* Adjust space below the caption */
+}
+
+
+/* works for figure caption alignment as intended */
+figcaption {
+  margin: auto;
+  text-align: left;
+}

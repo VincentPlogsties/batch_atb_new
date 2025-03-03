@@ -1,0 +1,1083 @@
+---
+title: "Gärtest 2022 #04 - Ergebnisse (intern)"
+subtitle: "Laufzeit: 07.11.22 - 21.12.22"
+
+prefer-html: true
+crossref: 
+ fig-prefix: Abb.
+ fig-title: 'Abb.'
+ tbl-title: Tab.
+ tbl-prefix: Tab.
+format:
+  html:
+    html-table-processing: none
+    embed-resources: true
+
+css: styles.css
+editor: visual
+params:
+  projekt: "blumo"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r data import, table header labels}
+#| echo: false
+#| warning: false
+#| include: false
+# (install &) load packages
+if (!require("pacman", quietly = TRUE))
+  install.packages("pacman")
+pacman::p_load(
+  broom,
+  conflicted,
+  ggtext,
+  openxlsx,
+  tidyverse,
+  glue,
+  gt
+  )
+# handle function conflicts
+conflicts_prefer(dplyr::filter) 
+conflicts_prefer(dplyr::select)
+#---------------------------------------------------------import data
+file_proben <- list.files(
+  "output", 
+  pattern = "_proben\\.rds$",
+  full.names = TRUE)
+file_daily <- list.files(
+  "output", 
+  pattern = "_means_daily\\.rds$",
+  full.names = TRUE)
+file_summary <- list.files(
+  "output", 
+  pattern = "_individuals_summary\\.rds$",
+  full.names = TRUE)
+file_summary_mean <- list.files(
+  "output", 
+  pattern = "_means_summary\\.rds$",
+  full.names = TRUE)
+files_analytik <- list.files(
+  "output", 
+  pattern = "_analytik\\.rds$",
+  full.names = TRUE)
+files_validity <- list.files(
+  "output",
+  pattern = "validity.rds$",
+  full.names = TRUE)
+
+# ----------------------------------------------------------data frames
+df_results_proben <- read_rds(file_proben)
+df_results_plots <- read_rds(file_daily)
+df_results_summary_mean <- read_rds(file_summary_mean)
+df_analysen      <- read_rds(files_analytik)
+df_results_summary <- read_rds(file_summary)
+df_validity <- read_rds(files_validity)
+
+#---------------------------Liste der benutzten Wannen für Projektproben
+projekt_tubs <- df_results_proben %>%
+  filter(projekt == params$projekt) %>%
+  select(wanne) %>%
+  distinct() 
+  projekt_tubs_distinct <- dput(projekt_tubs$wanne)
+
+#-----------------------------------------------------------column lables
+lookup_col_labels <- 
+    c(
+probe                   = md("**Probe**"),
+variante                = md("**Variante**"),
+einwaage_in_g_fm        = md("**Einwaage<br>[g]**"),
+p_i                     = md("**P/I<br>[-]**"),
+ts_perc_fm              = md("**TS<br>[%FM]**"),
+ots_perc_ts             = md("**oTS<br>[%TS]**"),
+ph                      = md("**pH<br>[-]**") ,
+leitfahigkeit_in_m_s_cm = md("**LF<br>[mS<sup>.</sup>cm<sup>-1</sup>]**"),
+nh4_n_g_l               = md("**NH<sub>4</sub>-N<br>[g<sup>.</sup>l<sup>-1</sup>]**"),
+nitrogen_g_l            = md("**N<br>[g<sup>.</sup>l<sup>-1</sup>]**"),
+alc_g_l                 = md("**Alc<br>[g<sup>.</sup>l<sup>-1</sup>]**"),
+es_g_l                 = md("**ES<br>[g<sup>.</sup>l<sup>-1</sup>]**"),
+ps_g_l                 = md("**PS<br>[g<sup>.</sup>l<sup>-1</sup>]**"),
+gc_ges_g_l              = md("**Ges-Sr.<br>[g<sup>.</sup>l<sup>-1</sup>]**"),
+n                = md("**n**"),
+versuchsdauer    = md("**Versuchs-<br>tage<br>[d]**"),
+biogas_yield_odm = md("**Biogas-<br>ausbeute<br>[l<sub>N</sub><sup>.</sup>kgoTM<sup>-1</sup>]**"), 
+biogas_yield     = md("**Biogas-<br>ausbeute<br>[l<sub>N</sub><sup>.</sup>kgoTM<sup>-1</sup>]**"),
+methane_yield_odm = md("**Methan-<br>ausbeute<br>[l<sub>N</sub><sup>.</sup>kgoTM<sup>-1</sup>]**"),
+methane_yield    = md("**Methan-<br>ausbeute<br>[l<sub>N</sub><sup>.</sup>kgoTM<sup>-1</sup>]**"),
+methane_perc     = md("**Methan<br>[Vol%]**"),
+wanne           = md("**Wanne**"),
+platz           = md("**Platz**"),
+analytik_nr           = md("**Analytik-Nr**")
+)
+```
+
+### 1.  Organisatorisches
+
+**Projekt**: " KTBL-VDLUFA-Ringversuch Biogas 2024
+
+**Kostenträger**: Abteilung 1 / Mikrobiom Biotechnologie
+
+**Labassistant**: "Ringversuche"
+
+**Bearbeitung**: Herrmann, Plogsties, Jost
+
+### 2.  Zielstellung
+
+Identifizierung von Unterschieden in den Versuchsergebnissen der beteiligten Laboratorien und deren Ursachen
+
+### 3.  Methoden
+
+Der Eingang der Proben erfolgte im Oktober 2024.
+
+-   Probe 2401: 3 kg Maissilage, siliert
+
+-   Probe 2401a: 3 kg Maissilage, siliert, getrocknet
+
+-   Probe 2402: 1 kg separierte Rindergülle
+
+-   Probe 2402a: 1 kg separierte Rindergülle, getrocknet
+
+-   Probe 2203: 1 kg Mischfutter Schwein
+
+-   Probe 2204: 1 kg Cellulose, mikrokristallin
+
+-   Probe 2205: 10 kg Rinder-Gülle
+
+Die Proben Maissilage Rindergülle und separierte Rindergülle wurden bis zum Ansatz bei -20°C gelagert, die Trockenproben bei Raumtemperatur
+
+<!-- ::: {#fig-Proben layout-nrow="2"} -->
+
+<!-- ![](data/abbildungen/Elsholz-1.JPG) -->
+
+<!-- ![](data/abbildungen/Götz.JPG) -->
+
+<!-- ![](data/abbildungen/Grube.JPG) -->
+
+<!-- ![](data/abbildungen/Hoppenrade.JPG) -->
+
+<!-- Proben, gehäckselt -->
+
+<!-- ::: -->
+
+Die Ermittlung der Biogas- bzw Methanausbeuten erfolgte über Batch-Versuche nach VDI 4630 (VDI, 2016)
+
+Alle Proben wurden in *drei*facher Wiederholung angesetzt. Die Versuche wurden nach Eintreten des Abbruchkriteriums nach ***Verweis***: VDI4630 beendet. Trat dieses an einem arbeitsfreien Tag ein erfolgte der Abbruch am nächsten Arbeitstag.
+
+Für die Untersuchungen kam eine Laboranlage zum Einsatz, die aus gasdichten Gärflaschen, Gasmäusen mit einem Dreiwegeventil und einem Wasserbad zur Temperierung besteht (@fig-anlage). Die Versuche wurden bei einer Temperatur von 37°C durchgeführt. Die Menge des täglich produzierten Biogases wurde in den Gasmäusen erfasst und anschließend hinsichtlich der Biogaszusammensetzung (Methan- und Kohlendioxidanteil) analysiert. Für die Analyse der Biogaszusammensetzung kam ein tragbarer Gasanalysator mit chemischen Sensoren und Infrarotsensoren (BM5000, Ansyco GmbH) zum Einsatz. Die Summe der im Versuchszeitraum ermittelten Biogasmenge diente zur Berechnung der Biogas-ausbeute. Als Bezugsgröße wurden die eingesetzte Frischmasse (FM) und die Masse an organischer Trockensubstanz (oTM) gewählt. Die gemessene Methankonzentration diente der Berechnung der Methanausbeute (l~N~^.^kgoTM^-1^).
+
+![Laboranlage](data/abbildungen/Abb_Versuchsaufbau_batch.png){#fig-anlage fig-align="center" width="10cm"}
+
+#### 3.1  chemische Analytik
+
+Die chemische Analytik des Substrates wurde entsprechend der folgenden Methoden durchgeführt:
+
+-   Trockensubstanzgehalt (TS) durch Trocknung bei 105°C im Trockenschrank nach DIN EN 12880
+
+-   organischer Trockensubstanzgehalt (oTS) durch Veraschung der getrockneten Proben bei 550°C im Muffelofen nach VDLUFA Methodenbuch Band 3, Kapitel 8.4
+
+#### 3.2 Belegung
+
+```{r Messplatzbelegung / Sample assignment}
+#| echo: false
+#| warning: false
+#| tbl-cap: Messplatzbelegung
+#| label: tbl-belegung
+
+
+df_assignment <- df_results_proben %>%
+  filter(wanne %in% projekt_tubs_distinct) %>%
+#-------------------------------------------------- nur Projektproben + blind aus diesen Wannen  
+  filter(projekt == params$projekt | str_detect(probe, "(?i)^blind_")) %>%
+  select(
+    any_of(
+      c( "wanne", "platz", "probe", "analytik_nr", "einwaage_in_g_fm" )
+    )
+  ) %>%
+mutate(
+  probe = str_replace_all(probe, "_", " ")) %>%
+  mutate(
+   across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+      str_replace_all(
+        c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+          )
+        )
+      ) 
+
+col_labels_results <- lookup_col_labels[
+  intersect(names(lookup_col_labels), names(df_assignment))
+  ]
+
+gt_assignment <- gt(df_assignment, locale = "de") %>% 
+  
+  cols_label(
+    .list = col_labels_results,
+    .fn = md
+    ) %>%
+ 
+  fmt_markdown(
+    columns = everything()
+    ) %>%
+  
+  # fmt_number(
+  #   columns = 2:4,
+  #   decimals = 1
+  #   ) %>%
+  
+  #----------------------------------------------------alignment
+  cols_align(
+    align = "center", 
+    columns = everything()
+    ) %>%
+   tab_style(
+      style = cell_text(
+        align = "center", 
+        v_align = "middle"
+        ),  
+      locations = list(
+        cells_body(everything()),
+        cells_column_labels()
+      )
+    ) %>%
+#---------------------------------------------------borders/lines
+  opt_table_lines("none") %>%
+  
+  tab_style(
+    style = cell_borders(
+      sides = c("top", "bottom"), 
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_labels(everything())
+  ) %>%
+    tab_style(
+      style = cell_borders(
+        sides = "bottom", 
+        color = "black", 
+        weight = px(1)
+        ),
+      locations = cells_body(
+          rows = probe != dplyr::lead(probe) | is.na(dplyr::lead(probe))
+      )
+    ) %>%
+  tab_style(
+    style = cell_borders(
+      sides = "bottom",
+      color = "black",
+      weight = px(2)
+      ),
+    locations = cells_body(
+        rows = nrow(df_assignment))
+  )
+    
+gt_assignment
+
+```
+
+### 4.  Ergebnisse
+
+#### 4.1  Inputstoffe
+
+```{r table analytics samples}
+#| echo: false
+#| warning: false
+#| tbl-cap: chemische Analysen Substrate
+#| label: tbl-analysen
+
+gt_analysen <- df_analysen %>%
+  left_join(
+    .,
+    select(df_results_proben, einwaage_in_g_fm, p_i ,analytik_nr),
+    join_by(analytik_nr),
+    multiple = "any"
+  ) %>%
+
+  filter(projekt == params$projekt & !probenart == "inokulum") %>%
+  select(where(~ !all(is.na(.)))) %>%
+  select(
+    !any_of(
+      c("gaertest", "projekt", "analytik_nr", "datum", "probenart")
+      )
+    ) %>%
+# select desired parameters here-------------------------------------------------
+  select(
+    any_of(
+      c(
+        "probe", 
+        "variante", 
+        "einwaage_in_g_fm", 
+        "p_i",
+        "ts_perc_fm", 
+        "ots_perc_ts",       
+        "ph",
+        "nh4_n_g_l",
+        "nitrogen_g_l",
+        "es_g_l", 
+        "ps_g_l",
+        "gc_ges_g_l",
+        "alc_g_l"
+        )
+      )
+    ) %>%
+    mutate(
+   across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+      str_replace_all(
+        c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+          )
+        )
+      ) %>%
+  drop_na(einwaage_in_g_fm)
+
+#---------------------------------------------------------------------gt table
+col_labels_samples <- lookup_col_labels[
+  intersect(names(lookup_col_labels), names(gt_analysen))
+  ]
+
+table_analytik <- gt(gt_analysen, locale = "de") %>%
+  cols_label(.list = col_labels_samples, .fn = md
+  ) %>%
+  fmt_markdown(columns = everything()) %>%
+
+  fmt_number(columns = everything(), decimals = 1) %>%
+#---------------------------------------------------------alignment
+  cols_align(
+    align = "center",
+    columns = everything()
+    ) %>%
+  tab_style(
+    style = cell_text(
+      align = "center",
+      v_align = "middle"
+      ),
+    locations = list(
+      cells_body(everything()),
+      cells_column_labels()
+                 )
+  ) %>%
+  
+#--------------------------------------------------------------borders/lines
+  opt_table_lines("none") %>%
+  tab_style(
+    style = cell_borders(
+      sides = c("top", "bottom"),
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_labels(everything())
+  ) %>%
+   tab_style(
+     style = cell_borders(
+       sides = "bottom",
+       color = "black",
+       weight = px(2)
+       ),
+     locations = cells_body(rows = nrow(gt_analysen))
+   ) 
+table_analytik
+```
+
+#### 4.2  Inokulum
+
+```{r table analytics inokulum}
+#| echo: false
+#| warning: false
+#| tbl-cap: chemische Analysen Inokulum
+#| label: tbl-analysen-inok
+
+gt_inokulum <- df_analysen %>%
+  filter(str_detect(probe, "(?i)^GT")) %>%
+  select(where(~ !all(is.na(.)))) %>%
+  select(
+    any_of(
+      c(
+        "probe",
+        "ts_perc_fm",
+        "ots_perc_ts", 
+        "ph",
+        "leitfahigkeit_in_m_s_cm",
+        "nh4_n_g_l",
+        "nitrogen_g_l",
+        "es_g_l", 
+        "ps_g_l",
+        "gc_ges_g_l",
+        "alc_g_l")
+      )
+    ) %>%
+  mutate(
+   across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+      str_replace_all(
+        c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+          )
+        )
+      ) 
+#---------------------------------------------------------------gt table
+col_labels_inokulum <- lookup_col_labels[
+  intersect(names(lookup_col_labels), names(gt_inokulum))
+  ]
+
+table_inokulum <- gt(gt_inokulum, locale = "de")%>%
+  cols_label(
+    .list = col_labels_inokulum,
+    .fn = md
+  ) %>%
+  fmt_markdown(columns = everything()) %>%
+  fmt_number(columns = everything(), decimals = 2) %>%
+#--------------------------------------------------------------- alignment
+  cols_align(
+    align = "center",
+    columns = everything()
+    ) %>%
+  tab_style(
+    style = cell_text(
+      align = "center",
+      v_align = "middle"
+      ),
+    locations = list(
+      cells_body(everything()),
+      cells_column_labels()
+    )
+  ) %>%
+#----------------------------------------------------------------borders/lines
+  opt_table_lines("none") %>%
+  tab_style(
+    style = cell_borders(
+      sides = c("top", "bottom"),
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_labels(everything())
+  ) %>%
+   tab_style(
+     style = cell_borders(
+       sides = "bottom",
+       color = "black",
+       weight = px(2)
+       ),
+     locations = cells_body(rows = nrow(gt_inokulum))
+   )
+  
+table_inokulum
+
+```
+
+#### 4.3  Versuchsverlauf
+
+keine besonderen Vorkomnisse
+
+#### 4.4  Verlauf Biogas und Methanbildung
+
+```{r theme plots}
+#| echo: false
+#| warning: false
+my_theme <- theme(
+  panel.grid = element_blank(),
+  panel.grid.major.y =  element_line(
+    linewidth = 0.15, 
+    color = "grey"),
+  panel.grid.major.x = element_line(
+    linewidth = 0.15, 
+    color="grey"),
+# panel.background = element_rect(colour = "grey", fill=NA, size=0.15),
+# panel.border = element_line(colour = "grey", size=0.15),
+                
+  axis.ticks.length = unit(1, "mm"),
+  axis.minor.ticks.length = unit(0.5, "mm"),
+  text = element_text(size = 11),
+  axis.text.x = element_text(
+    size = 10, 
+    color = "black", 
+    angle = 0, 
+    vjust = 0.5, 
+    hjust = 0.5),
+  axis.text.y = element_text(
+    size = 10, 
+    color = "black"),
+  axis.title.y = element_textbox_simple(
+    orientation = "left-rotated", 
+    halign = 0.5),
+                
+  legend.position = "inside",
+  legend.position.inside = c(0.6,0.25),
+  legend.background = element_blank(),
+  legend.box.background = element_rect(colour = "grey", size = 0.15),
+# legend.position = "top",
+# legend.justification = "left",
+  legend.box.spacing = unit(0, "pt"),
+  legend.title = element_blank(),
+  legend.margin=margin(0,0,0,0),
+  legend.key.spacing.y = unit(0, "pt"),
+  legend.key.spacing.x = unit(0, "pt"),
+  legend.key = element_blank(),
+  legend.text = element_text(
+    margin = margin(l = 1, r = 4,unit = "pt")),
+                  
+ #legend.background = element_rect(fill = "white", colour= "black")
+#legend.byrow = 
+#legend.direction = "horizontal",
+  plot.caption = element_textbox_simple(
+    margin = margin(t = 5)),# Abstand t(op) von oben
+  plot.caption.position = "plot",
+                
+  plot.title.position = "panel"
+  )
+farben <- c("#005ca9", "#94b53d","#FF8976", "#f39200", "#00843d", "#00a5e2", "#666699")
+
+x_lab<- "Versuchstage"
+y_lab<- "Methanausbeute<br>[l<sub>N</sub><sup>.</sup>kgoTM<sup>-1</sup>]"
+y_lab_BG <-"Biogasausbeute<br>[l<sub>N</sub><sup>.</sup>kgoTM<sup>-1</sup>]"
+```
+
+```{r plot biogas}
+#| echo: false
+#| warning: false
+#| fig-cap: Biogasausbeuten über den Versuchszeitlauf
+#| label: fig-biogasausbeuten
+
+df_plot_biogas <- df_results_plots %>%
+  filter(projekt == params$projekt & !str_detect(probe, "blind_w")) %>%
+  mutate(
+    across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+        str_replace_all(
+          c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+        )
+    )
+  ) %>%
+  view()
+ 
+plot_biogas <- df_plot_biogas %>%
+  ggplot() +
+  aes(y = biogas_yield_odm_mean, 
+          x = day, 
+          color = probe
+          ) +
+      geom_line(
+        linewidth = 1
+        ) +            
+      scale_color_manual(
+        values = farben
+        )+
+      #scale_color_colorblind()+  
+      geom_errorbar(
+        aes(
+          x = day, 
+          ymin = biogas_yield_odm_min, 
+          ymax = biogas_yield_odm_max),
+          color = "black",
+          linewidth = 0.2,
+          width = 0.5
+      ) +
+      scale_x_continuous(
+        name = x_lab,
+        limits = c(0, 50),
+        breaks = seq(0, 50, by=5),
+        #minor_breaks = seq(0, 30, by=1),
+        # guide = guide_axis(
+        #   minor.ticks = TRUE
+        #   ),
+         expand = expansion(mult = c(0, 0.01))
+        ) +
+      scale_y_continuous(
+        name = y_lab_BG,
+        limits = c(0, 800),
+        breaks = seq(0, 800, by=50),
+        #minor_breaks = seq(0, 400, by=50),
+        #guide = guide_axis(minor.ticks = TRUE),
+        expand = expansion(mult = c(0, 0.01))
+        ) +
+      #labs(caption = param_projekt) +
+      theme_bw() + 
+      my_theme +
+      guides(
+        color = guide_legend(
+          nrow = 2, byrow = TRUE 
+          )
+        )
+  # ggtitle("Erntejahr 2024")
+plot_biogas
+```
+
+```{r plot methan}
+#| echo: false
+#| warning: false
+#| fig-cap: Methanausbeuten über den Versuchszeitlauf
+#| label: fig-methanausbeuten
+
+df_plot_methan <- df_plot_biogas %>%
+  drop_na(methane_yield_odm_mean) %>%
+
+  view()
+plot_methan <- df_plot_methan %>%
+  ggplot() +
+  aes(
+    y = methane_yield_odm_mean, 
+    x = day, 
+    color = probe
+    ) +
+  geom_line(
+    linewidth = 1
+        ) +            
+  scale_color_manual(
+      values = farben
+    ) +
+      #scale_color_colorblind()+  
+  geom_errorbar(
+      aes(
+        x = day, 
+        ymin = methane_yield_odm_min, 
+        ymax = methane_yield_odm_max),
+        color = "black",
+        linewidth = 0.2,
+        width = 0.5
+      ) +
+    scale_x_continuous(
+      name = x_lab,
+      limits = c(0, 50),
+      breaks = seq(0, 50, by=5),
+        #minor_breaks = seq(0, 30, by=1),
+        # guide = guide_axis(
+        #   minor.ticks = TRUE
+        #   ),
+      expand = expansion(mult = c(0, 0.01))
+        ) +
+      scale_y_continuous(
+        name = y_lab,
+        limits = c(0, 400),
+        breaks = seq(0, 400, by=50),
+        #minor_breaks = seq(0, 400, by=50),
+        #guide = guide_axis(minor.ticks = TRUE),
+        expand = expansion(mult = c(0, 0.01))
+        ) +
+      #labs(caption = param_projekt) +
+      theme_bw() + 
+      my_theme +
+      guides(
+        color = guide_legend(
+          nrow = 2, byrow = TRUE 
+          )
+        )
+  # ggtitle("Erntejahr 2024")
+plot_methan
+```
+
+```{r plot inokulum}
+#| echo: false
+#| warning: false
+#| fig-cap: Biogasausbeuten über den Versuchszeitlauf - Inokulum
+#| label: fig-biogasausbeuten_inok
+
+df_plot_biogas_inok <- df_results_plots %>%
+  filter(str_sub(probe, -2) %in% projekt_tubs_distinct) %>%
+  filter(str_detect(probe, "blind_w")) %>%
+  mutate(
+    across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+        str_replace_all(
+          c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+        )
+    )
+  )
+ 
+view(df_results_plots)
+
+plot_biogas_inokulum <- df_plot_biogas_inok %>%
+  ggplot() +
+  aes(y = biogas_yield_odm_mean, 
+          x = day, 
+          color = probe
+          ) +
+      geom_line(
+        linewidth = 1
+        ) +            
+      scale_color_manual(
+        values = farben
+        )+
+      #scale_color_colorblind()+  
+      geom_errorbar(
+        aes(
+          x = day, 
+          ymin = biogas_yield_odm_min, 
+          ymax = biogas_yield_odm_max),
+          color = "black",
+          linewidth = 0.2,
+          width = 0.5
+      ) +
+      scale_x_continuous(
+        name = x_lab,
+        limits = c(0, 40),
+        breaks = seq(0, 40, by=5),
+        #minor_breaks = seq(0, 30, by=1),
+        # guide = guide_axis(
+        #   minor.ticks = TRUE
+        #   ),
+         expand = expansion(mult = c(0, 0.01))
+        ) +
+      scale_y_continuous(
+        name = y_lab_BG,
+        limits = c(0, 20),
+        breaks = seq(0, 20, by=1),
+        #minor_breaks = seq(0, 400, by=50),
+        #guide = guide_axis(minor.ticks = TRUE),
+        expand = expansion(mult = c(0, 0.01))
+        ) +
+      #labs(caption = param_projekt) +
+      theme_bw() + 
+      my_theme +
+      guides(
+        color = guide_legend(
+          nrow = 2, byrow = TRUE 
+          )
+        )
+  # ggtitle("Erntejahr 2024")
+plot_biogas_inokulum
+```
+
+#### 4.5  Ergebnisse Biogas und Methanbildung
+
+```{r table results mean}
+#| echo: false
+#| warning: false
+#| tbl-cap: Ergebnisse Gärversuche - Mittelwerte mit Spannen
+#| label: tbl-ergebnisse_mean
+view(df_results_summary_mean)
+df_table_mean <- df_results_summary_mean %>%
+  ungroup() %>%
+  mutate(
+    biogas_yield = glue(
+      "{gsub('\\\\.', ',', sprintf('%.1f',biogas_yield_odm_mean))}<br>
+     ({gsub('\\\\.', ',', sprintf('%.1f', biogas_yield_odm_min))}-{gsub('\\\\.', ',', sprintf('%.1f', biogas_yield_odm_max))})"
+    )
+  ) %>%
+  mutate(
+    methane_yield = glue(
+      "{gsub('\\\\.', ',', sprintf('%.1f',methane_yield_odm_mean))}<br>
+     ({gsub('\\\\.', ',', sprintf('%.1f', methane_yield_odm_min))}-{gsub('\\\\.', ',', sprintf('%.1f', methane_yield_odm_max))})"
+    )
+  ) %>%
+  
+  mutate(
+    methane_perc = glue(
+      "{gsub('\\\\.', ',', sprintf('%.1f',methane_perc_mean))}<br>
+     ({gsub('\\\\.', ',', sprintf('%.1f', methane_perc_min))}-{gsub('\\\\.', ',', sprintf('%.1f', methane_perc_max))})"
+    )
+  ) %>%
+  #filter(projekt == params$projekt | str_detect(probe, "(?i)^blind_")) %>%
+  filter(projekt == params$projekt | str_sub(probe, -2) %in% projekt_tubs_distinct) %>%
+  select(
+    any_of(
+      c(
+        "probe",
+        "variante",
+        "n",
+        "biogas_yield",
+        "methane_yield",
+        "methane_perc",
+        "versuchsdauer"
+        )
+      )
+  ) %>%
+  arrange(
+    ifelse(
+      startsWith(probe, "blind_"),
+      1, 
+      0), 
+    probe) %>%
+  mutate(
+   across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+      str_replace_all(
+        c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+          )
+        )
+      ) 
+
+col_labels_results_mean <- lookup_col_labels[
+  intersect(names(lookup_col_labels), names(df_table_mean))
+  ]
+
+gt_table_mean <- gt(df_table_mean, locale = "de") %>% 
+  
+  cols_label(
+    .list = col_labels_results_mean,
+    .fn = md
+    ) %>%
+ 
+  fmt_markdown(
+    columns = everything()
+    ) %>%
+  
+  # fmt_number(
+  #   columns = 4:8, 
+  #   decimals = 1
+  #   ) %>%
+  #----------------------------------------------------alignment
+  cols_align(
+    align = "center", 
+    columns = everything()
+    ) %>%
+   tab_style(
+      style = cell_text(
+        align = "center", 
+        v_align = "middle"
+        ),  
+      locations = list(
+        cells_body(everything()),
+        cells_column_labels()
+      )
+    ) %>%
+#---------------------------------------------------borders/lines
+  opt_table_lines("none") %>%
+  
+  tab_style(
+    style = cell_borders(
+      sides = c("top", "bottom"), 
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_labels(everything())
+  ) %>% 
+    tab_style(
+      style = cell_borders(
+        sides = "bottom", 
+        color = "black", 
+        weight = px(1)
+        ),
+      locations = cells_body(
+          rows = probe != dplyr::lead(probe) | is.na(dplyr::lead(probe))
+      )
+    ) %>%
+  tab_style(
+    style = cell_borders(
+      sides = "bottom", 
+      color = "black", 
+      weight = px(2)
+      ),
+    locations = cells_body(
+        rows = nrow(df_table_mean))
+  )
+   
+gt_table_mean
+```
+
+```{r table results individuals}
+#| echo: false
+#| warning: false
+#| tbl-cap: Ergebnisse Gärversuche - Einzelwerte
+#| label: tbl-ergebnisse
+
+df_table <- df_results_summary %>%
+  #view()
+  #filter(projekt == params$projekt | str_detect(probe, "(?i)^blind_")) %>%
+  filter(projekt == params$projekt | str_sub(probe, -2) %in% projekt_tubs_distinct) %>%
+ # view()
+  select(
+    any_of(
+      c(
+        "probe",
+        "variante",
+        "n",
+        "biogas_yield_odm",
+        "methane_yield_odm",
+        "methane_perc",
+        "versuchsdauer"
+        )
+      )
+  ) %>%
+      arrange(
+    ifelse(
+      startsWith(probe, "blind_"),
+      1, 
+      0), 
+    probe) %>%
+  mutate(
+   across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+      str_replace_all(
+        c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+          )
+        )
+      ) 
+col_labels_results <- lookup_col_labels[
+  intersect(names(lookup_col_labels), names(df_table))
+  ]
+gt_table <- gt(df_table, locale = "de") %>% 
+  
+  cols_label(
+    .list = col_labels_results,
+    .fn = md
+    ) %>%
+ 
+  fmt_markdown(
+    columns = everything()
+    ) %>%
+  
+  fmt_number(
+    columns = 2:4,
+    decimals = 1
+    ) %>%
+  
+  #----------------------------------------------------alignment
+  cols_align(
+    align = "center", 
+    columns = everything()
+    ) %>%
+   tab_style(
+      style = cell_text(
+        align = "center", 
+        v_align = "middle"
+        ),  
+      locations = list(
+        cells_body(everything()),
+        cells_column_labels()
+      )
+    ) %>%
+#---------------------------------------------------borders/lines
+  opt_table_lines("none") %>%
+  
+  tab_style(
+    style = cell_borders(
+      sides = c("top", "bottom"), 
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_labels(everything())
+  ) %>%
+    tab_style(
+      style = cell_borders(
+        sides = "bottom", 
+        color = "black", 
+        weight = px(1)
+        ),
+      locations = cells_body(
+          rows = probe != dplyr::lead(probe) | is.na(dplyr::lead(probe))
+      )
+    ) %>%
+  tab_style(
+    style = cell_borders(
+      sides = "bottom",
+      color = "black",
+      weight = px(2)
+      ),
+    locations = cells_body(
+        rows = nrow(df_table))
+  )
+gt_table
+
+```
+
+#### 4.6  Gültigkeit der Messungen
+
+```{r table validity}
+#| echo: false
+#| warning: false
+#| tbl-cap: Gültigkeit der Messung
+#| label: tbl-validity
+
+df_table_valid <- df_validity %>%
+  filter(projekt == params$projekt | str_sub(probe, -2) %in% projekt_tubs_distinct) %>%
+  select(-projekt) %>%
+  arrange(
+    ifelse(
+      startsWith(probe, "blind_"),
+      1, 
+      0), 
+    probe) %>%
+  mutate(
+   across(
+      where(is.character),
+      ~ str_to_title(.) %>%
+      str_replace_all(
+        c("oe" = "ö", "ue" = "ü", "ae" = "ä")
+          )
+        )
+      ) %>%
+  mutate(across(c(mean_BG, diff_BG, diff_mean_perc), as.numeric))
+
+gt_table_valid <- gt(df_table_valid, locale = "de") %>% 
+
+  cols_label(
+    probe = md("**Probe**"),
+    wanne = md("**Wanne**"),
+    pruefglied = md("**Prüfglied**"),
+    mean_BG = md("**MW <br>[ml]**"),
+    diff_BG = md("**Diff<br>[ml]**"),
+    diff_mean_perc = md("**Diff/MW<br>[%]**"),
+    .fn = md
+    ) %>%
+    tab_spanner(
+    label = md("**Biogas**"),
+    columns = c(mean_BG, diff_BG, diff_mean_perc)
+  ) %>%
+ 
+  fmt_markdown(
+    columns = everything()
+    ) %>%
+  
+  fmt_number(
+    columns = 4:6,
+    #columns = c("mean_BG","diff_BG", "diff_mean_perc"),
+    decimals = 1
+    ) %>%
+  
+  #----------------------------------------------------alignment
+  cols_align(
+    align = "center",
+    columns = everything()
+    ) %>%
+   tab_style(
+      style = cell_text(
+        align = "center",
+        v_align = "middle"
+        ),
+      locations = list(
+        cells_body(everything()),
+        cells_column_labels()
+      )
+    ) %>%
+#---------------------------------------------------borders/lines
+  opt_table_lines("none") %>%
+
+  tab_style(
+    style = cell_borders(
+      sides = c("top", "bottom"),
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_labels(everything())
+  ) %>%
+  
+    tab_style(
+    style = cell_borders(
+      sides = c("top"),
+      color = "black", weight = px(2)
+      ),
+    locations = cells_column_spanners()
+  ) %>%
+    tab_style(
+      style = cell_borders(
+        sides = "bottom",
+        color = "black",
+        weight = px(1)
+        ),
+      locations = cells_body(
+          rows = probe != dplyr::lead(probe) | is.na(dplyr::lead(probe))
+      )
+    ) %>%
+  tab_style(
+    style = cell_borders(
+      sides = "bottom",
+      color = "black",
+      weight = px(2)
+      ),
+    locations = cells_body(
+        rows = nrow(df_table_valid))
+  )
+    
+gt_table_valid
+
+```
