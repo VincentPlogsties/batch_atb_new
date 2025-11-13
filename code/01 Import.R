@@ -11,6 +11,7 @@ lookup <- c(
   probe                  = "name",
   ts_perc_fm             = "ts105_in_percent_fm",
   ots_perc_ts            = "o_ts_in_percent_ts" ,
+  ots_perc_fm            = "o_ts_in_percent_fm" ,
   ph                     = "p_h_wert" ,
   nh4_n_mg_per_kgfm      = "nh4_n_in_mg_kg_fm",
   nitrogen_mg_per_kgfm   = "n_kjeld_in_mg_kg_fm",
@@ -33,51 +34,65 @@ df_import_analytik <- analytik_files %>%
   map(
     ~read_xlsx(
       .x,
-      skip_empty_rows = TRUE) %>% 
+      skip_empty_rows = TRUE,
+      skip_empty_cols = TRUE) %>% 
       mutate(
         filename = basename(.x),
-        .before = 1) %>%
-      mutate(
-        across(everything(), ~ ifelse(grepl("<", .), "0", .)),
-        filename = sub( "_Analysen.xlsx","", filename)
-        ) %>%
-      extract(
-        filename,
-        into = c("gaertest", "projekt"),
-        regex = "(GT_\\d{4}_\\d{2})_(.*)"
-        ) %>%
-      janitor::clean_names(.) %>%
-      rename(any_of(lookup)) %>%
-      mutate(
-        across(
-          -c(gaertest,projekt, analytik_nr, datum, probe, probenart),
-          as.numeric
-          ),
-        across(
-          where(is.character), 
-          ~ make_clean_names(
-            .,
-            allow_dupes = TRUE,
-            replace = c("ö" = "oe","ä" = "ae","ü" = "ue")) %>%
-          str_replace("^x","")  
-          ),
-        datum = as.Date(datum, origin = "1969-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
-        )
-      ) %>%
-  bind_rows() %>%
+        .before = 1) )%>% 
+  bind_rows() %>% 
   mutate(
-    nh4_n_g_l    = nh4_n_mg_per_kgfm / 1000,
-    nitrogen_g_l = nitrogen_mg_per_kgfm  / 1000,
-    .keep = "unused"
+    across(everything(), ~ ifelse(grepl("<", .), "0", .)),
+    filename = sub( "_Analysen.xlsx","", filename)
   ) %>%
+  extract(
+    filename,
+    into = c("gaertest", "projekt"),
+    regex = "(GT_\\d{4}_\\d{2})(?:_(.*))?"
+  ) %>%
+  janitor::clean_names(.) %>%
+  rename(any_of(lookup)) %>%
   mutate(
-    alc_g_l  = methanol_g_l + ethanol_g_l + propanol_g_l + butanol_g_l,
-    .after = butanol_g_l
+    across(
+      -any_of(c("gaertest","projekt", "analytik_nr", "datum", "probe", "probenart")),
+      as.numeric),
+    across(
+      where(is.character), 
+      ~ make_clean_names(
+        .,
+        allow_dupes = TRUE,
+        replace = c("ö" = "oe","ä" = "ae","ü" = "ue")) %>%
+        str_replace("^x","")  
+    ),
+    datum = as.Date(datum, origin = "1969-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
+  ) %>% 
+  mutate(
+    across(
+      any_of(c("nh4_n_mg_per_kgfm", "nitrogen_mg_per_kgfm")),
+      ~ .x/1000,
+      .names = "{.col}_converted"
+    )
+  ) %>% 
+  rename(
+    nh4_n_g_l  = any_of("nh4_n_mg_per_kgfm_converted"),
+    nitrogen_g_l = any_of("nitrogen_mg_per_kgfm_converted")
+  ) %>% 
+  select(any_of(c("nh4_n_g_l", "nitrogen_g_l")), everything()) %>% 
+  rowwise() %>%
+  mutate(
+    alc_g_l = case_when(
+      # If the number of elements selected by c_across is 0 (i.e., no columns exist)
+      length(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l")))) == 0 ~ NA_real_, 
+      
+      # Otherwise, safely calculate the sum
+      TRUE ~ sum(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l"))), na.rm = TRUE)
+    )
   ) %>%
-  janitor::remove_empty(
-    .,
-    which = "cols"
-  ) 
+  ungroup()   # Always un-group after rowwise()
+  
+# janitor::remove_empty(
+#   .,
+#   which = "cols"
+# ) %>% view()
 
 # Proben ------------------------------------------------------------------
 
@@ -142,7 +157,7 @@ df_import_samples <-
 
 # Gaswerte --------------------------------------------------------------------
 
-sheets_daten <- c("w1", "w2", "w3", "w4", "w5", "w6", "w7")
+sheets_daten <- c("w1", "w2", "w3", "w4", "w5", "w6")
 
 df_import_gaswerte <- sheets_daten %>%
   map(
