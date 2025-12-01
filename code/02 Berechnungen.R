@@ -108,12 +108,13 @@ df_w1_6 <- df_import_w1_6 %>%
 
 ## Blind MW pro Wanne ------------------------------------------------------
 df_w1_6_blind <- df_w1_6 %>%
-  filter(str_detect(probe, "blind_w")) %>%
+  filter(str_detect(probe, regex("blind", ignore_case = TRUE))) %>%
   group_by(wanne, datum, zeit) %>%
   summarise(
     blind_mean = mean(vol_norm)
     ) %>%
-  ungroup() 
+  ungroup() %>% 
+  view()
 
 df_w1_6 <- df_w1_6 %>%
   left_join(
@@ -123,7 +124,7 @@ df_w1_6 <- df_w1_6 %>%
     )%>% 
   mutate(
     vol_norm_net = if_else(
-      str_detect(probe, "blind_w"),
+      str_detect(probe, regex("Blind[ _]W\\d", ignore_case = TRUE)),
       vol_norm,
       vol_norm - blind_mean
     )
@@ -134,9 +135,7 @@ df_w1_6 <- df_w1_6 %>%
 df_w1_6_methan <- df_w1_6 %>%
   group_by(messplatz) %>%
   mutate(
-    vol_norm_net_cum = cumsum(
-      vol_norm_net
-      )
+    vol_norm_net_cum = cumsum(vol_norm_net)
     ) %>%
   filter(!is.na(methane_perc)) %>%
  # na.omit() %>%

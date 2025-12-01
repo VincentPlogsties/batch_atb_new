@@ -38,7 +38,8 @@ df_import_analytik <- analytik_files %>%
       skip_empty_cols = TRUE) %>% 
       mutate(
         filename = basename(.x),
-        .before = 1) )%>% 
+        .before = 1) 
+    )%>% 
   bind_rows() %>% 
   mutate(
     across(everything(), ~ ifelse(grepl("<", .), "0", .)),
@@ -49,21 +50,32 @@ df_import_analytik <- analytik_files %>%
     into = c("gaertest", "projekt"),
     regex = "(GT_\\d{4}_\\d{2})(?:_(.*))?"
   ) %>%
+  mutate( projekt = na_if(projekt, "")) %>%
+  # mutate(
+  #   across(
+  #     where(is.character),
+  #           ~ .x %>% 
+  #             str_to_lower() %>% 
+  #             str_squish() %>% 
+  #             str_replace_all(c("ö" = "oe","ä" = "ae","ü" = "ue"))
+  #     )
+  #   ) %>%
+    #   
+    #   
+    #   
+    # # 1. Clean up umlauts/accents using stringi::stri_trans_general
+    # projekt = stringi::stri_trans_general(projekt, "Any-Latin; Latin-ASCII"),
+    # 
+    # # 2. (Optional) Convert to lowercase and replace spaces with underscores, 
+    # #    similar to make_clean_names but preserving other special characters
+    # projekt = str_to_lower(projekt)) %>% 
   janitor::clean_names(.) %>%
   rename(any_of(lookup)) %>%
   mutate(
     across(
       -any_of(c("gaertest","projekt", "analytik_nr", "datum", "probe", "probenart")),
       as.numeric),
-    across(
-      where(is.character), 
-      ~ make_clean_names(
-        .,
-        allow_dupes = TRUE,
-        replace = c("ö" = "oe","ä" = "ae","ü" = "ue")) %>%
-        str_replace("^x","")  
-    ),
-    datum = as.Date(datum, origin = "1969-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
+    datum = as.Date(datum, origin = "1899-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
   ) %>% 
   mutate(
     across(
@@ -111,34 +123,34 @@ df_import_samples <-
       "oTM"="otm"
       )
     ) %>%
-  mutate(
-    across(
-      where(is.character),
-      ~ make_clean_names(
-        .,
-        allow_dupes = TRUE,
-        replace = c(
-          "ö" = "oe",
-          "ä" = "ae",
-          "ü" = "ue",
-          "oTM"="otm"
-          )
-        ) %>%
-      str_replace(
-        "^x",
-        ""
-        )
-      ),
-    across(
-      everything(),
-      ~ ifelse(
-        . 
-        == "na",
-        NA,
-        .
-        )
-      )
-    ) %>%
+  # mutate(
+  #   across(
+  #     where(is.character),
+  #     ~ make_clean_names(
+  #       .,
+  #       allow_dupes = TRUE,
+  #       replace = c(
+  #         "ö" = "oe",
+  #         "ä" = "ae",
+  #         "ü" = "ue",
+  #         "oTM"="otm"
+  #         )
+  #       ) %>%
+  #     str_replace(
+  #       "^x",
+  #       ""
+  #       )
+  #     ),
+  #   across(
+  #     everything(),
+  #     ~ ifelse(
+  #       . 
+  #       == "na",
+  #       NA,
+  #       .
+  #       )
+  #     )
+  #   ) %>%
   drop_na(einwaage_in_g_fm) %>%
   mutate(
     across(
@@ -218,6 +230,6 @@ df_import_gaswerte <- sheets_daten %>%
   ) 
   
 
-#tsr
+
 
 
