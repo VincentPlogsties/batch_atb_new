@@ -113,8 +113,7 @@ df_w1_6_blind <- df_w1_6 %>%
   summarise(
     blind_mean = mean(vol_norm)
     ) %>%
-  ungroup() %>% 
-  view()
+  ungroup() 
 
 df_w1_6 <- df_w1_6 %>%
   left_join(
@@ -250,6 +249,7 @@ df_condition <- df_abbruch %>%
   mutate(
     condition_probe = vol_perc <= 0.5
   ) %>%
+
     
 ## wdh <=0.5 /3d---------------------------------------------------------------
   #df_condition <- df_condition %>%
@@ -265,20 +265,23 @@ df_condition <- df_abbruch %>%
      dplyr::lag(condition_variant) == TRUE &
      dplyr::lag(condition_variant, n = 2) == TRUE &
      dplyr::lag(condition_variant, n = 3) == TRUE &
-     day > 25,
+     dplyr::lag(day, default = TRUE) > 25,
+     #  day > 25,
      FALSE,
      TRUE
      )
    ) %>%
+ 
   #sobald Kriterium erreicht ist, alle Folgewerte verwerfen
   mutate(
-    condition = if_else(
+    condition2 = if_else(
       dplyr::lag(condition, default = TRUE) == FALSE,
       FALSE,
       condition
     )
   ) %>%
-  ungroup() 
+  ungroup() %>% 
+  view()
 
 df_condition_wide <- df_condition %>%
   pivot_wider(
@@ -287,7 +290,7 @@ df_condition_wide <- df_condition %>%
     values_from = condition
   ) 
 
-
+view(df_condition)
 # Ergebnisse -----------------------------------------------------------------
 
 ## Messwerte nach Kriterium ------------------------------------------------

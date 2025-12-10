@@ -13,7 +13,7 @@ pacman::p_load(
   multcompView,
   #openxlsx,
   openxlsx2,
-  #readxl,
+  readxl,
   tidyverse,
   glue,
   gt,
