@@ -1,6 +1,6 @@
 ---
-title: "Gärtest 2022 #04 - Ergebnisse (intern)"
-subtitle: "Laufzeit: 07.11.22 - 21.12.22"
+title: "Gärtest 2025 #03 - Ergebnisse (intern)"
+subtitle: "Laufzeit: 21.10.25 - 05.12.25"
 
 prefer-html: true
 crossref: 
@@ -16,7 +16,7 @@ format:
 css: styles.css
 editor: visual
 params:
-  projekt: "blumo"
+  projekt: "KTBL-RV"
 ---
 
 ```{r setup, include=FALSE}
@@ -115,7 +115,7 @@ analytik_nr           = md("**Analytik-Nr**")
 
 ### 1.  Organisatorisches
 
-**Projekt**: " KTBL-VDLUFA-Ringversuch Biogas 2024
+**Projekt**: " KTBL-VDLUFA-Ringversuch Biogas 2025
 
 **Kostenträger**: Abteilung 1 / Mikrobiom Biotechnologie
 
@@ -129,37 +129,19 @@ Identifizierung von Unterschieden in den Versuchsergebnissen der beteiligten Lab
 
 ### 3.  Methoden
 
-Der Eingang der Proben erfolgte im Oktober 2024.
+Der Eingang der Proben erfolgte am 24.9.25.
 
--   Probe 2401: 3 kg Maissilage, siliert
+-   Probe 2501: 3 kg Maissilage, siliert, ungetrocknet
 
--   Probe 2401a: 3 kg Maissilage, siliert, getrocknet
+-   Probe 2502: 1 kg Maisstrohsilage, siliert, getrocknet
 
--   Probe 2402: 1 kg separierte Rindergülle
+-   Probe 2503: 1 kg Mischfutter Schwein
 
--   Probe 2402a: 1 kg separierte Rindergülle, getrocknet
+-   Probe 2504: 1 kg Cellulose, mikrokristallin
 
--   Probe 2203: 1 kg Mischfutter Schwein
+-   Probe 2505: 5 kg Rinder-Gülle
 
--   Probe 2204: 1 kg Cellulose, mikrokristallin
-
--   Probe 2205: 10 kg Rinder-Gülle
-
-Die Proben Maissilage Rindergülle und separierte Rindergülle wurden bis zum Ansatz bei -20°C gelagert, die Trockenproben bei Raumtemperatur
-
-<!-- ::: {#fig-Proben layout-nrow="2"} -->
-
-<!-- ![](data/abbildungen/Elsholz-1.JPG) -->
-
-<!-- ![](data/abbildungen/Götz.JPG) -->
-
-<!-- ![](data/abbildungen/Grube.JPG) -->
-
-<!-- ![](data/abbildungen/Hoppenrade.JPG) -->
-
-<!-- Proben, gehäckselt -->
-
-<!-- ::: -->
+Die Proben Maissilage und Rindergülle wurden bis zum Ansatz bei -20°C gelagert, die Trockenproben bei Raumtemperatur
 
 Die Ermittlung der Biogas- bzw Methanausbeuten erfolgte über Batch-Versuche nach VDI 4630 (VDI, 2016)
 
@@ -409,7 +391,7 @@ gt_inokulum <- df_analysen %>%
   mutate(
    across(
       where(is.character),
-      ~ str_to_title(.) %>%
+      ~ str_to_upper(.) %>%
       str_replace_all(
         c("oe" = "ö", "ue" = "ü", "ae" = "ä")
           )
@@ -672,8 +654,8 @@ plot_methan
 #| label: fig-biogasausbeuten_inok
 
 df_plot_biogas_inok <- df_results_plots %>%
-  filter(str_sub(probe, -2) %in% projekt_tubs_distinct) %>%
-  filter(str_detect(probe, "blind_w")) %>%
+  filter(str_to_lower(str_sub(probe, -2)) %in% str_to_lower(projekt_tubs_distinct)) %>%
+  
   mutate(
     across(
       where(is.character),
