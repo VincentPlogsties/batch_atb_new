@@ -290,7 +290,7 @@ df_condition_wide <- df_condition %>%
     values_from = condition
   ) 
 
-view(df_condition)
+
 # Ergebnisse -----------------------------------------------------------------
 
 ## Messwerte nach Kriterium ------------------------------------------------
@@ -309,7 +309,7 @@ df_w1_6_daily <- df_w1_6_daily_interim %>%
     )
   ) %>%
   filter(condition == TRUE) %>%
-  select(-c(condition, condition_variant)) 
+  select(-c(condition, condition2, condition_variant)) 
 
 ## Gültigkeit der Messungen nach VDI4630-----------------------------------
 
