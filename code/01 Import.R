@@ -242,24 +242,32 @@ sheets_daten <- c("w1", "w2", "w3", "w4", "w5", "w6")
 
 df_import_gaswerte <- sheets_daten %>%
   map(
-    ~ openxlsx2::read_xlsx(
-      protokoll_files[1], 
-      colNames = FALSE, # Ohne Spaltenname damit rowbind die unterschiedlichen Wannen den gleichen Spalten zuordnet (A,B...)
+    ~ readxl::read_xlsx(
+      path = protokoll_files[1],
       sheet = .x,
-      rows = c(6:71), 
-      cols = c(1:69),
-      skip_empty_cols = FALSE,
-      types = c(A = 1)
-      ) %>%
-        mutate(
-          sheet_name = .x
-          )
-    ) %>%
+      range = "A6:BQ71",
+      col_names = FALSE,
+      col_types = "numeric"
+    ) %>% 
+      mutate(
+        sheet_name = .x
+      )
+  ) %>% 
+    # ~ openxlsx::read.xlsx(
+    #   protokoll_files[1],
+    #   colNames = FALSE, # Ohne Spaltenname damit rowbind die unterschiedlichen Wannen den gleichen Spalten zuordnet (A,B...)
+    #   sheet = .x,
+    #   rows = c(6:71),
+    #   cols = c(1:69),
+    #   skipEmptyCols = FALSE
+    #   #types = c(A = 1)
+    #   ) %>%
+    #     mutate(
+    #       sheet_name = .x
+    #       )
+    # ) %>%
   bind_rows() %>%
-  relocate(sheet_name, 
-           .after = D
-           ) %>%
-
+  relocate(sheet_name,.after = 4) %>%
   rename_with(
     .,
     ~ c(
