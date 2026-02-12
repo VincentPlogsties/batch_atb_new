@@ -201,11 +201,12 @@ df_import_analytik <- analytik_files %>%
 # Proben ------------------------------------------------------------------
 
 df_import_samples <-
-  openxlsx2::read_xlsx(
+  openxlsx::read.xlsx(
     protokoll_files[1], 
     sheet = "Proben", 
     rows = 4:121, 
     cols = 1:20) %>%
+  as_tibble() %>% 
   janitor::clean_names(
     .,
     replace = c(
@@ -215,34 +216,6 @@ df_import_samples <-
       "oTM"="otm"
       )
     ) %>%
-  # mutate(
-  #   across(
-  #     where(is.character),
-  #     ~ make_clean_names(
-  #       .,
-  #       allow_dupes = TRUE,
-  #       replace = c(
-  #         "ö" = "oe",
-  #         "ä" = "ae",
-  #         "ü" = "ue",
-  #         "oTM"="otm"
-  #         )
-  #       ) %>%
-  #     str_replace(
-  #       "^x",
-  #       ""
-  #       )
-  #     ),
-  #   across(
-  #     everything(),
-  #     ~ ifelse(
-  #       . 
-  #       == "na",
-  #       NA,
-  #       .
-  #       )
-  #     )
-  #   ) %>%
   drop_na(einwaage_in_g_fm) %>%
   mutate(
     across(
@@ -254,6 +227,10 @@ df_import_samples <-
       as.numeric
       )
     ) %>%
+  mutate(
+    projekt = str_to_lower(projekt),
+    projekt = str_squish(projekt)
+  ) %>% 
     janitor::remove_empty(
       .,
       which = "cols"
