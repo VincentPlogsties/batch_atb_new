@@ -2,9 +2,8 @@
 # Analytik -----------------------------------------------------------
 
 df_analytik <- df_import_analytik %>%
-  filter(
-    str_detect(probe, "(?i)^GT") | probenart == "inokulum" | projekt == "inokulum"
-  ) %>%
+  # Inokulum means berechnen
+  filter(str_detect(probe, "(?i)^GT") | probenart == "inokulum") %>%
   summarise(
     across(
       where(is.numeric), 
@@ -15,7 +14,57 @@ df_analytik <- df_import_analytik %>%
     probe = "blind_mean",
     analytik_nr = "blind_mean") %>%
   bind_rows(df_import_analytik,.) %>%
-  fill(gaertest, .direction = "down") 
+  # falls Analysen in mehrfachbestimmung mittelwerte bilden
+  group_by(datum, probenart, probe) %>%
+  summarise(
+    analytik_nr = if_else(
+      n() == 1,
+      first(analytik_nr),
+      paste0(
+        str_extract(first(analytik_nr), "^\\d{4}"),  # Year from first ID
+        "/",
+        str_extract(first(analytik_nr), "(?<=-)\\d+"),  # Number from first ID
+        "-",
+        str_extract(last(analytik_nr), "(?<=-)\\d+")    # Number from last ID
+      )
+    ),
+    across(where(is.numeric), ~ mean(.x, na.rm = TRUE))
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    across(where(is.numeric), ~ na_if(.x, NaN))
+  ) %>% 
+  # Parameter berechnen / Einheiten ändern
+  mutate(
+    across(
+      any_of(c("nh4_n_mg_kg_fm", "nitrogen_mg_kg_fm")),
+      ~ .x/1000,
+      .names = "{.col}_converted"
+    )
+  ) %>% 
+  rename(
+    nh4_n_g_kgfm  = any_of("nh4_n_mg_kg_fm_converted"),
+    nitrogen_g_kgfm = any_of("nitrogen_mg_kg_fm_converted")
+  ) %>% 
+  select(!any_of(c("nh4_n_mg_kg_fm", "nitrogen_mg_kg_fm"))) %>% 
+ # select(any_of(c("nh4_n_g_l", "nitrogen_g_l")), everything()) %>% 
+  rowwise() %>%
+  mutate(
+    alc_g_l = case_when(
+      # If the number of elements selected by c_across is 0 (i.e., no columns exist)
+      length(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l")))) == 0 ~ NA_real_, 
+      
+      # Otherwise, calculate the sum
+      TRUE ~ sum(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l"))), na.rm = TRUE)
+    )
+  ) %>%
+  ungroup() %>% 
+  left_join(
+    .,
+    select(df_import_samples, analytik_nr, gaertest, projekt),
+    by = join_by(analytik_nr)
+  ) %>% 
+  relocate(where(is.numeric), .after = where(is.character)) 
 
 # Proben ------------------------------------------------------------------
 
@@ -233,8 +282,7 @@ df_abbruch <- df_w1_6_daily_interim %>%
       100, 
       vol_norm_net / vol_norm_net_cum / (run_time - dplyr::lag(run_time, default = 0)) * 100
     ) 
-  ) %>%
-  view()
+  ) 
 
 df_abbruch_wide <- df_abbruch %>%
   arrange(wanne, platz) %>%
@@ -280,8 +328,7 @@ df_condition <- df_abbruch %>%
       condition
     )
   ) %>%
-  ungroup() %>% 
-  view()
+  ungroup() 
 
 df_condition_wide <- df_condition %>%
   pivot_wider(

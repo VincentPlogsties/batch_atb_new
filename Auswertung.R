@@ -10,22 +10,22 @@
 
 # Berechnungen-----------------------------------------------------
 
-bad_channels = (c("w3_3", "w2_1", "komma"))
+bad_channels = (c("wx_x", "wx_x", "komma"))
 
 source("code/00 setup.R")
-source("code/01 import.R")
+source("code/01 import.R", encoding = "UTF-8")
 # view(df_import_gaswerte)
 # view(df_import_analytik)
 # view(df_import_samples)
 # view(df_import_w1_6)
-source("code/02 Berechnungen.R")
+source("code/02 Berechnungen.R", encoding = "UTF-8")
 # view(df_w1_6)
 # view(df_w1_6_daily_interim)
 # view(df_w1_6_daily)
 # view(df_results)
 # view(df_proben)
 # view(df_analytik)
-source("code/03 Ergebnisse.R")
+source("code/03 Ergebnisse.R", encoding = "UTF-8")
 # view(df_results_individuals_daily)
 # view(df_results_means_daily)
 # view(df_results_individuals_summary)

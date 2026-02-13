@@ -1,33 +1,76 @@
 
 # pfade -------------------------------------------------------------
 
-analytik_files <- list.files("data", pattern = "Analysen\\.xlsx$", full.names = TRUE)
-protokoll_files <- list.files("data", pattern = "Protokoll\\.xlsx$", full.names = TRUE)
+analytik_files <- list.files(
+  "data", 
+  pattern = "Analysen.*\\.xlsx$",
+  ignore.case = TRUE,
+  full.names = TRUE
+  )
+analytik_files <- 
+  analytik_files[!str_detect(basename(analytik_files), "^~\\$")]
+
+protokoll_files <- list.files(
+  "data", 
+  pattern = "Protokoll.*\\.xlsx$", 
+  full.names = TRUE,
+  ignore.case = TRUE
+  )
+protokoll_files <- 
+  protokoll_files[!str_detect(basename(protokoll_files), "^~\\$")]
 
 # Analytik ----------------------------------------------------------------
 
 lookup <- c(
-  analytik_nr            = "probennummer",
-  probe                  = "name",
-  ts_perc_fm             = "ts105_in_percent_fm",
-  ots_perc_ts            = "o_ts_in_percent_ts" ,
-  ots_perc_fm            = "o_ts_in_percent_fm" ,
-  ph                     = "p_h_wert" ,
-  nh4_n_mg_per_kgfm      = "nh4_n_in_mg_kg_fm",
-  nitrogen_mg_per_kgfm   = "n_kjeld_in_mg_kg_fm",
-  methanol_g_l           = "gc_methanol_in_g_l" ,
-  ethanol_g_l            = "gc_ethanol_in_g_l" ,
-  propanol_g_l           = "gc_propanol_in_g_l" ,
-  butanol_g_l            = "gc_butanol_in_g_l" ,
-  es_g_l                 = "gc_essigsaure_in_g_l",
-  ps_g_l                 = "gc_propionsaure_in_g_l",
-  bs_g_l                 = "gc_buttersaure_in_g_l",
-  ibs_g_l                = "gc_i_buttersaure_in_g_l",
-  ivs_g_l                = "gc_i_valeriansaure_in_g_l",
-  vs_g_l                 = "gc_valeriansaure_in_g_l",
-  ics_g_l                = "gc_i_capronsaure_in_g_l" ,
-  cs_g_l                 = "gc_capronsaure_in_g_l",
-  gc_ges_g_l             = "gc_gesamt_als_essigsaure_in_g_l"
+  analytik_nr            = "probennummer"                         ,
+  probe                  = "name"                                 ,
+  pk                     = "pufferkapazitat_in_g_ms_100g_ts"      ,
+  ts_perc_fm             = "ts105_in_percent_fm"                  ,
+  ots_perc_ts            = "o_ts_in_percent_ts"                   ,
+  ots_perc_fm            = "o_ts_in_percent_fm"                   ,
+  ts60_perc_fm           = "ts60_in_percent"                      ,
+  ts105_ts60_perc        = "ts_60_105_c"                          ,
+  ph                     = "p_h_wert"                             ,
+  lf_ms_cm               = "leitfahigkeit_in_m_s_cm"              ,
+  nh4_n_mg_kg_fm         = "nh4_n_in_mg_kg_fm"                    ,
+  nitrogen_mg_kg_fm      = "n_kjeld_in_mg_kg_fm"                  ,
+  rprot_perc_ts          = "rohprotein_in_percent_ts"             ,
+  methanol_g_l           = "gc_methanol_in_g_l"                   ,
+  ethanol_g_l            = "gc_ethanol_in_g_l"                    ,
+  propanol_g_l           = "gc_propanol_in_g_l"                   ,
+  butanol_g_l            = "gc_butanol_in_g_l"                    ,
+  es_g_l                 = "gc_essigsaure_in_g_l"                 ,
+  ps_g_l                 = "gc_propionsaure_in_g_l"               ,
+  bs_g_l                 = "gc_buttersaure_in_g_l"                ,
+  iso_bs_g_l             = "gc_i_buttersaure_in_g_l"              ,
+  iso_vs_g_l             = "gc_i_valeriansaure_in_g_l"            ,
+  vs_g_l                 = "gc_valeriansaure_in_g_l"              ,
+  iso_cs_g_l             = "gc_i_capronsaure_in_g_l"              ,
+  cs_g_l                 = "gc_capronsaure_in_g_l"                ,
+  gc_ges_g_l             = "gc_gesamt_als_essigsaure_in_g_l"      ,
+  ms_g_l                 = "hplc_milchsaure_in_g_l"               ,
+  gluc_g_l               = "hplc_glucose_in_g_l"                  ,
+  sacc_g_l               = "hplc_saccharose_in_g_l"               ,
+  fruc_g_l               = "hplc_fructose_in_g_l"                 ,
+  rfett_perc_ts          = "rohfett_in_percent_ts"                ,
+  rfaser_perc_ts         = "rohfaser_in_percent_ts"               ,
+  ndf_perc_ts            = "ndf_in_percent_ts"                    ,
+  adf_perc_ts            = "adf_in_percent_ts"                    ,
+  adl_perc_ts            = "adl_in_percent_ts"                    ,
+  n_perc_ts              = "n_in_percent_ts"                      ,
+  c_perc_ts              = "c_in_percent_ts"                      ,
+  s_perc_ts              = "s_in_percent_ts"                      ,
+  h_perc_ts              = "h_in_percent_ts"                      ,
+  gluc_wlk_g_l           = "wlk_glucose"                          ,
+  fruc_wlk_g_l           = "wlk_fructose"                         ,
+  sac_wlk_g_l            = "wlk_saccharose"                       ,
+  inu_wlk_g_l            = "wlk_inulin"                           ,
+  pges_mg_kg_fm          = "pges_in_mg_kg_fm"                     ,
+  zuc_ges_wlk_g_l        = "wlk_gesamtzucker"                     ,
+  zuc_ges_wlk_perc_ts    = "wlk_in_percent_ts"                    ,
+  no3_mg_kg_ts60         = "ic_no3_in_mg_kg_ts60"                 ,
+  staerke_perc_ts        = "staerke_nach_ewers_in_percent_ts"     ,
+  zucker_perc_ts         = "zuckergehalt_in_percent_ts"
 )
 
 
@@ -47,26 +90,44 @@ df_import_analytik <- analytik_files %>%
   bind_rows() %>%
 # Variablennamen vereinheitlichen
   rename(any_of(lookup)) %>%
-# Variablen ergänzen (-> Projekt notwendig?)
-  mutate(
-    filename = sub( "_Analysen.xlsx","", filename)
-  ) %>% 
-  extract(
-    filename,
-    into = c("gaertest", "projekt"),
-    regex = "(GT_\\d{4}_\\d{2})(?:_(.*))?"
-  ) %>%                              # mit tidyr::separate_wider_regex ersetzen?
-  mutate(
-    projekt = na_if(projekt, ""),
-    ) %>%
+
+# # Variablen ergänzen (-> Projekt notwendig?)
+#   mutate(
+#     filename = sub( "_Analysen.xlsx","", filename)
+#   ) %>% 
+#   extract(
+#     filename,
+#     into = c("gaertest", "projekt"),
+#     regex = "(GT_\\d{4}_\\d{2})(?:_(.*))?"
+#   ) %>%                              # mit tidyr::separate_wider_regex ersetzen?
+#   mutate(
+#     projekt = na_if(projekt, ""),
+#     ) %>%
 # Werte unter Nachweisgrenze "0" setzen --> Vorgehen noch abklären!
+  select(-contains("percent")) %>%
   mutate(
-    across(everything(), ~ ifelse(grepl("<", .), "0", .))
-  ) %>%
-# Formate festlegen
+    probenart = case_match(
+      probenart,
+      c("Feststoffprobe", "Frischmassen") ~ "FM",
+      "Silage" ~ "S",
+      .default = probenart
+    )
+  ) %>% 
+  # Werte unter Nachweisgrenze auf 0 setzen -- Absprache nötig
   mutate(
     across(
-      -any_of(c("gaertest","projekt", "analytik_nr", "probe", "probenart")),
+      everything(), 
+      ~ if_else(
+        str_detect(., "<|n.a"),
+        "0",
+        .
+      )
+    )
+  ) %>%
+  # Formate festlegen
+  mutate(
+    across(
+      -any_of(c("filename", "analytik_nr", "probe", "probenart")),
       as.numeric),
     datum = lubridate::as_date(datum, origin = "1899-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
   ) %>% 
@@ -78,120 +139,12 @@ df_import_analytik <- analytik_files %>%
         # str_to_lower() %>%
         # str_replace_all(c("ö" = "oe","ä" = "ae","ü" = "ue")) %>% 
         str_squish() %>% 
-        str_replace_all(pattern = "\\s*-\\s*", replacement = "-")
-      
+        str_replace_all(pattern = "\\s+-\\s+", replacement = "-") # whitespace around hyphens
     )
-  ) %>% 
-# Parameter berechnen / Einheiten ändern
-  mutate(
-    across(
-      any_of(c("nh4_n_mg_per_kgfm", "nitrogen_mg_per_kgfm")),
-      ~ .x/1000,
-      .names = "{.col}_converted"
-    )
-  ) %>% 
-  rename(
-    nh4_n_g_l  = any_of("nh4_n_mg_per_kgfm_converted"),
-    nitrogen_g_l = any_of("nitrogen_mg_per_kgfm_converted")
-  ) %>% 
-  select(any_of(c("nh4_n_g_l", "nitrogen_g_l")), everything()) %>% 
-  rowwise() %>%
-  mutate(
-    alc_g_l = case_when(
-      # If the number of elements selected by c_across is 0 (i.e., no columns exist)
-      length(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l")))) == 0 ~ NA_real_, 
-      
-      # Otherwise, calculate the sum
-      TRUE ~ sum(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l"))), na.rm = TRUE)
-    )
-  ) %>%
-  ungroup()
+  ) 
 
 
 
-# df_import_analytik <- analytik_files %>%
-#   map(
-#     ~read_xlsx(
-#       .x,
-#       skip_empty_rows = TRUE,
-#       skip_empty_cols = TRUE) %>% 
-#       mutate(
-#         filename = basename(.x),
-#         .before = 1) 
-#     )%>% 
-#   bind_rows() %>% 
-#   mutate(
-#     across(everything(), ~ ifelse(grepl("<", .), "0", .)),
-#     filename = sub( "_Analysen.xlsx","", filename)
-#   ) %>%
-#   extract(
-#     filename,
-#     into = c("gaertest", "projekt"),
-#     regex = "(GT_\\d{4}_\\d{2})(?:_(.*))?"
-#   ) %>%
-#   mutate(
-#     projekt = na_if(projekt, "")
-#     ) %>%
-# # Formate festlegen
-#     mutate(
-#       across(
-#         -any_of(c("gaertest","projekt", "analytik_nr", "datum", "probe", "probenart")),
-#         as.numeric),
-#       datum = as.Date(datum, origin = "1899-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
-#     ) %>% 
-# # Zeichenketten säubern
-#   mutate(
-#     across(
-#       where(is.character),
-#       ~ .x %>%
-#         str_to_lower() %>%
-#         str_replace_all(c("ö" = "oe","ä" = "ae","ü" = "ue")) %>% 
-#         str_squish() %>% 
-#         str_replace_all(pattern = "\\s*-\\s*", replacement = "-")
-#       
-#       )
-#     ) %>%
-#   view()
-#     #   
-#     #   
-#     #   
-#     # # 1. Clean up umlauts/accents using stringi::stri_trans_general
-#     # projekt = stringi::stri_trans_general(projekt, "Any-Latin; Latin-ASCII"),
-#     # 
-#     # # 2. (Optional) Convert to lowercase and replace spaces with underscores, 
-#     # #    similar to make_clean_names but preserving other special characters
-#     # projekt = str_to_lower(projekt)) %>% 
-#   janitor::clean_names(.) %>%
-#   rename(any_of(lookup)) %>%
-#   mutate(
-#     across(
-#       -any_of(c("gaertest","projekt", "analytik_nr", "datum", "probe", "probenart")),
-#       as.numeric),
-#     datum = as.Date(datum, origin = "1899-12-30") # startzeit hängt bei excel von der Version ab - anpassen!
-#   ) %>% 
-#   mutate(
-#     across(
-#       any_of(c("nh4_n_mg_per_kgfm", "nitrogen_mg_per_kgfm")),
-#       ~ .x/1000,
-#       .names = "{.col}_converted"
-#     )
-#   ) %>% 
-#   rename(
-#     nh4_n_g_l  = any_of("nh4_n_mg_per_kgfm_converted"),
-#     nitrogen_g_l = any_of("nitrogen_mg_per_kgfm_converted")
-#   ) %>% 
-#   select(any_of(c("nh4_n_g_l", "nitrogen_g_l")), everything()) %>% 
-#   rowwise() %>%
-#   mutate(
-#     alc_g_l = case_when(
-#       # If the number of elements selected by c_across is 0 (i.e., no columns exist)
-#       length(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l")))) == 0 ~ NA_real_, 
-#       
-#       # Otherwise, safely calculate the sum
-#       TRUE ~ sum(c_across(any_of(c("methanol_g_l", "ethanol_g_l", "propanol_g_l", "butanol_g_l"))), na.rm = TRUE)
-#     )
-#   ) %>%
-#   ungroup()   # Always un-group after rowwise()
   
 # janitor::remove_empty(
 #   .,
@@ -206,16 +159,14 @@ df_import_samples <-
     sheet = "Proben", 
     rows = 4:121, 
     cols = 1:20) %>%
-  as_tibble() %>% 
-  janitor::clean_names(
-    .,
-    replace = c(
-      "ö" = "oe",
-      "ä" = "ae",
-      "ü" = "ue",
-      "oTM"="otm"
+  rename_with(
+    ~ str_replace_all(
+      .x, 
+      c("ö" = "oe","ä" = "ae","ü" = "ue","oTM" = "otm", "%" = "")
       )
-    ) %>%
+    ) %>% 
+  janitor::clean_names() %>%
+  as_tibble() %>%
   drop_na(einwaage_in_g_fm) %>%
   mutate(
     across(
@@ -230,11 +181,11 @@ df_import_samples <-
   mutate(
     projekt = str_to_lower(projekt),
     projekt = str_squish(projekt)
-  ) %>% 
+  ) %>%
     janitor::remove_empty(
       .,
       which = "cols"
-    ) 
+    )
 
 # Gaswerte --------------------------------------------------------------------
 
