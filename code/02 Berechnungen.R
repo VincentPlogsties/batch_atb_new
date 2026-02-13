@@ -62,8 +62,10 @@ df_analytik <- df_import_analytik %>%
   left_join(
     .,
     select(df_import_samples, analytik_nr, gaertest, projekt),
-    by = join_by(analytik_nr)
-  ) %>% 
+    by = join_by(analytik_nr),
+    multiple = "first",
+    relationship = "one-to-many"
+  ) %>%
   relocate(where(is.numeric), .after = where(is.character)) 
 
 # Proben ------------------------------------------------------------------
@@ -286,7 +288,6 @@ df_abbruch <- df_w1_6_daily_interim %>%
 
 df_abbruch_wide <- df_abbruch %>%
   arrange(wanne, platz) %>%
-  
   pivot_wider(
     id_cols = c("datum", "day"),
     names_from = messplatz,
@@ -297,8 +298,6 @@ df_condition <- df_abbruch %>%
   mutate(
     condition_probe = vol_perc <= 0.5
   ) %>%
-
-    
 ## wdh <=0.5 /3d---------------------------------------------------------------
   #df_condition <- df_condition %>%
     group_by(probe,day) %>%
@@ -306,11 +305,11 @@ df_condition <- df_abbruch %>%
       condition_variant = all(condition_probe)) %>%
     arrange(probe, day) %>%
     group_by(probe) %>%
-  
+# condition = "should test continue" 
   mutate(
-   condition =  if_else(
+   continue_test =  if_else(
      #condition_variant == TRUE &
-     dplyr::lag(condition_variant) == TRUE &
+     dplyr::lag(condition_variant)        == TRUE &
      dplyr::lag(condition_variant, n = 2) == TRUE &
      dplyr::lag(condition_variant, n = 3) == TRUE &
      dplyr::lag(day, default = TRUE) > 25,
@@ -319,22 +318,17 @@ df_condition <- df_abbruch %>%
      TRUE
      )
    ) %>%
- 
   #sobald Kriterium erreicht ist, alle Folgewerte verwerfen
   mutate(
-    condition2 = if_else(
-      dplyr::lag(condition, default = TRUE) == FALSE,
-      FALSE,
-      condition
-    )
-  ) %>%
+    keep_values = cumall(continue_test) # cumall(x): all cases until the first FALSE.
+  ) %>% 
   ungroup() 
 
 df_condition_wide <- df_condition %>%
   pivot_wider(
     id_cols = day,
     names_from = probe,
-    values_from = condition
+    values_from = continue_test
   ) 
 
 
@@ -348,15 +342,8 @@ df_w1_6_daily <- df_w1_6_daily_interim %>%
     df_condition,
     join_by(probe, day)
   ) %>%
-  mutate(
-    condition = if_else(
-      is.na(condition)|condition == 1,
-      TRUE,
-      FALSE
-    )
-  ) %>%
-  filter(condition == TRUE) %>%
-  select(-c(condition, condition2, condition_variant)) 
+  filter(keep_values == TRUE) %>% 
+  select(-c(keep_values, continue_test, condition_variant)) 
 
 ## Gültigkeit der Messungen nach VDI4630-----------------------------------
 
@@ -371,7 +358,7 @@ test_validity <- df_w1_6_daily %>%
     .,
     select(df_import_samples, any_of(c("messplatz", "wanne","variante"))),
     join_by(messplatz)) %>%
-  group_by(projekt, probe,wanne) %>%
+  group_by(projekt, probe, wanne) %>%
   
   # Generate all combinations of the elements of x taken m at a time.
   # If x is a positive integer, returns all combinations of the elements of seq(x) taken m at a time.
